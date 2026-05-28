@@ -420,29 +420,41 @@
       };
     }
 
-    function secondsUntilNoon(zone) {
+function secondsUntilNoon(zone) {
 
-      const t = getTimeParts(zone);
+  const t = getTimeParts(zone);
 
-      const currentSeconds =
+  const currentSeconds =
 
-        (t.hour * 3600) +
-        (t.minute * 60) +
-        t.second;
+    (t.hour * 3600) +
+    (t.minute * 60) +
+    t.second;
 
-      const noonSeconds = 12 * 3600;
+  const noonStart = 12 * 3600;
+  const noonEnd = (12 * 3600) + 59;
 
-      if (currentSeconds <= noonSeconds) {
+  // Estamos dentro de la ventana ranked
+  if (
+    currentSeconds >= noonStart &&
+    currentSeconds <= noonEnd
+  ) {
 
-        return noonSeconds - currentSeconds;
-      }
+    return 0;
+  }
 
-      return (
+  // Todavía no llegó
+  if (currentSeconds < noonStart) {
 
-        (24 * 3600 - currentSeconds)
-        + noonSeconds
-      );
-    }
+    return noonStart - currentSeconds;
+  }
+
+  // Ya pasó
+  return (
+
+    (24 * 3600 - currentSeconds)
+    + noonStart
+  );
+}
 
     function formatCountdown(totalSeconds) {
 
