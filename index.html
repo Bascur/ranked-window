@@ -27,6 +27,14 @@
       text-align: center;
 
       overflow: hidden;
+
+      transition:
+        background 0.5s ease,
+        transform 0.2s ease;
+    }
+
+    body.noon {
+      animation: shake 0.3s;
     }
 
     .container {
@@ -45,6 +53,8 @@
       font-size: clamp(2.5rem, 7vw, 5rem);
       margin: 20px 0;
       line-height: 1.1;
+
+      transition: color 0.3s ease;
     }
 
     .country {
@@ -84,10 +94,15 @@
       font-size: clamp(3rem, 10vw, 7rem);
       font-weight: bold;
       margin: 40px 0;
+
       color: #4ade80;
 
       font-variant-numeric: tabular-nums;
       letter-spacing: 2px;
+
+      transition:
+        color 0.3s ease,
+        text-shadow 0.3s ease;
     }
 
     .now {
@@ -138,6 +153,29 @@
       }
     }
 
+    @keyframes shake {
+
+      0% {
+        transform: translateX(0);
+      }
+
+      25% {
+        transform: translateX(-4px);
+      }
+
+      50% {
+        transform: translateX(4px);
+      }
+
+      75% {
+        transform: translateX(-4px);
+      }
+
+      100% {
+        transform: translateX(0);
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -173,6 +211,8 @@
 
     const allTimezones =
       Intl.supportedValuesOf("timeZone");
+
+    let wasNoon = false;
 
     const quotes = [
 
@@ -216,14 +256,12 @@
 
       "En algún lugar del mundo, alguien acaba de decir 'confíen'.",
 
-      "En algún lugar del mundo, alguien está blindpickeando Garen.",
-      
-      "En algún lugar del mundo, alguien acaba de escribir 'gg izi'.",
+      "En algun lugar del mundo, Vodo esta diciendo 'Pequeñas victorias.'",
 
-      "En algún lugar del mundo, alguien se hizo una cuadra con Jhin.",
-        "En algún lugar del mundo, alguien acaba de perder una promo por culpa de un afk.",
-        "En algún lugar del mundo, Vodo acaba de decir pequeñas victorias",
-        "En algún lugar del mundo, Juampi esta llorando por los asesinos."
+      "En algun lugar del mundo, Juampi esta llorando por el estado de los asesinos.",
+
+      "En algun lugar del mundo, Homero esta siendo baneado por flamear en el chat.",
+
     ];
 
     const timezoneCountryMap = {
@@ -459,8 +497,9 @@
 
     function update() {
 
-      let closestZone = null;
       let smallestSeconds = Infinity;
+
+      const closestZones = [];
 
       for (const zone of allTimezones) {
 
@@ -470,9 +509,26 @@
         if (seconds < smallestSeconds) {
 
           smallestSeconds = seconds;
-          closestZone = zone;
+
+          closestZones.length = 0;
+
+          closestZones.push(zone);
+
+        } else if (
+          seconds === smallestSeconds
+        ) {
+
+          closestZones.push(zone);
         }
       }
+
+      const closestZone =
+        closestZones[
+          Math.floor(
+            Math.random() *
+            closestZones.length
+          )
+        ];
 
       const countryData =
         tryGetCountry(closestZone);
@@ -525,14 +581,60 @@
         document.getElementById(
           "title"
         ).textContent =
-          "ES HORA DE JUGAR LOL";
+          "PODÉS JUGAR AHORA";
+
+        document.body.style.background =
+          "#07130a";
+
+        document.body.classList.add(
+          "noon"
+        );
+
+        document.getElementById(
+          "countdown"
+        ).style.color =
+          "#22c55e";
+
+        document.getElementById(
+          "countdown"
+        ).style.textShadow =
+          "0 0 20px rgba(34,197,94,0.8)";
+
+        if (!wasNoon) {
+
+          wasNoon = true;
+
+          document.getElementById(
+            "quote"
+          ).textContent =
+            "“En algún lugar del mundo, alguien acaba de entrar a una ranked completamente innecesaria.”";
+        }
 
       } else {
+
+        wasNoon = false;
+
+        document.body.classList.remove(
+          "noon"
+        );
 
         document.getElementById(
           "title"
         ).textContent =
           "Próximo mediodía en...";
+
+        document.body.style.background =
+          "#0d0d0d";
+
+        document.getElementById(
+          "countdown"
+        ).style.color =
+          "#4ade80";
+
+        document.getElementById(
+          "countdown"
+        ).style.textShadow =
+          "none";
       }
     }
 
