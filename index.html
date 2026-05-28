@@ -101,6 +101,10 @@
       opacity: 0.45;
       font-style: italic;
       font-size: 1rem;
+
+      min-height: 24px;
+
+      transition: opacity 0.3s ease;
     }
 
     .live {
@@ -161,15 +165,66 @@
 
     <div class="now" id="currentTime"></div>
 
-    <div class="quote">
-      “En algún lugar del mundo, alguien ya está instalockeando Yasuo.”
-    </div>
+    <div class="quote" id="quote"></div>
 
   </div>
 
   <script>
 
-    const allTimezones = Intl.supportedValuesOf("timeZone");
+    const allTimezones =
+      Intl.supportedValuesOf("timeZone");
+
+    const quotes = [
+
+      "En algún lugar del mundo, alguien ya está instalockeando Yasuo.",
+
+      "En algún lugar del mundo, alguien acaba de escribir 'jg diff'.",
+
+      "En algún lugar del mundo, un main Teemo está sonriendo.",
+
+      "En algún lugar del mundo, alguien está perdiendo LP innecesariamente.",
+
+      "En algún lugar del mundo, alguien acaba de flashear contra una pared.",
+
+      "En algún lugar del mundo, un ADC está pingueando al support.",
+
+      "En algún lugar del mundo, alguien sigue pensando que esta season sí sale de oro.",
+
+      "En algún lugar del mundo, un jungla está siendo culpado por todo.",
+
+      "En algún lugar del mundo, alguien acaba de lockear Yasuo 0/10 powerspike.",
+
+      "En algún lugar del mundo, alguien escribió 'report top'.",
+
+      "En algún lugar del mundo, alguien está viendo el nexus explotar en cámara lenta.",
+
+      "En algún lugar del mundo, un main Shaco está arruinando vidas.",
+
+      "En algún lugar del mundo, alguien está jugando una promo completamente maldita.",
+
+      "En algún lugar del mundo, alguien acaba de decir 'es mi última ranked'.",
+
+      "En algún lugar del mundo, un support acaba de robarse un kill accidentalmente.",
+
+      "En algún lugar del mundo, alguien está fedeando con dignidad.",
+
+      "En algún lugar del mundo, alguien acaba de tirar FF al minuto 15.",
+
+      "En algún lugar del mundo, un Darius tiene 5 stacks.",
+
+      "En algún lugar del mundo, alguien está carreando sin reconocimiento.",
+
+      "En algún lugar del mundo, alguien acaba de decir 'confíen'.",
+
+      "En algún lugar del mundo, alguien está blindpickeando Garen.",
+      
+      "En algún lugar del mundo, alguien acaba de escribir 'gg izi'.",
+
+      "En algún lugar del mundo, alguien se hizo una cuadra con Jhin.",
+        "En algún lugar del mundo, alguien acaba de perder una promo por culpa de un afk.",
+        "En algún lugar del mundo, Vodo acaba de decir pequeñas victorias",
+        "En algún lugar del mundo, Juampi esta llorando por los asesinos."
+    ];
 
     const timezoneCountryMap = {
 
@@ -267,16 +322,22 @@
 
         if (timezoneCountryMap[part]) {
 
-          const code = timezoneCountryMap[part];
+          const code =
+            timezoneCountryMap[part];
 
           return {
-            flag: countryCodeToFlag(code),
-            country: countryNames[code]
+
+            flag:
+              countryCodeToFlag(code),
+
+            country:
+              countryNames[code]
           };
         }
       }
 
       return {
+
         flag: "🌎",
         country: null
       };
@@ -302,15 +363,21 @@
       return {
 
         hour: Number(
-          parts.find(p => p.type === "hour").value
+          parts.find(
+            p => p.type === "hour"
+          ).value
         ),
 
         minute: Number(
-          parts.find(p => p.type === "minute").value
+          parts.find(
+            p => p.type === "minute"
+          ).value
         ),
 
         second: Number(
-          parts.find(p => p.type === "second").value
+          parts.find(
+            p => p.type === "second"
+          ).value
         )
       };
     }
@@ -375,6 +442,19 @@
         hour12: false
 
       }).format(new Date());
+    }
+
+    function updateQuote() {
+
+      const randomQuote = quotes[
+        Math.floor(
+          Math.random() * quotes.length
+        )
+      ];
+
+      document.getElementById(
+        "quote"
+      ).textContent = `“${randomQuote}”`;
     }
 
     function update() {
@@ -457,8 +537,14 @@
     }
 
     update();
+    updateQuote();
 
     setInterval(update, 1000);
+
+    setInterval(
+      updateQuote,
+      15000
+    );
 
   </script>
 
