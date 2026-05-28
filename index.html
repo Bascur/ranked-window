@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <title>¿Ya es mediodía?</title>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #0d0d0d;
+      color: white;
+      font-family: Arial, sans-serif;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      min-height: 100vh;
+      padding: 20px;
+      text-align: center;
+
+      overflow: hidden;
+    }
+
+    .container {
+      max-width: 900px;
+      width: 100%;
+    }
+
+    .small {
+      opacity: 0.7;
+      font-size: 1rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-size: clamp(2.5rem, 7vw, 5rem);
+      margin: 20px 0;
+      line-height: 1.1;
+    }
+
+    .country {
+      margin-top: 25px;
+
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 999px;
+
+      padding: 12px 22px;
+
+      background: rgba(255,255,255,0.03);
+
+      backdrop-filter: blur(10px);
+    }
+
+    .country-flag {
+      font-size: 2rem;
+    }
+
+    .country-name {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    .timezone {
+      font-size: clamp(1.2rem, 3vw, 2rem);
+      opacity: 0.85;
+      margin-top: 25px;
+      word-break: break-word;
+    }
+
+    .countdown {
+      font-size: clamp(3rem, 10vw, 7rem);
+      font-weight: bold;
+      margin: 40px 0;
+      color: #4ade80;
+
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 2px;
+    }
+
+    .now {
+      margin-top: 20px;
+      opacity: 0.7;
+      font-size: 1rem;
+    }
+
+    .quote {
+      margin-top: 50px;
+      opacity: 0.45;
+      font-style: italic;
+      font-size: 1rem;
+    }
+
+    .live {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+
+      background: #4ade80;
+
+      border-radius: 999px;
+      margin-right: 8px;
+
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+
+      0% {
+        opacity: 0.3;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 1;
+        transform: scale(1.4);
+      }
+
+      100% {
+        opacity: 0.3;
+        transform: scale(1);
+      }
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <div class="small">
+      <span class="live"></span>
+      Ventana global de ranked
+    </div>
+
+    <div id="countryContainer"></div>
+
+    <h1 id="title">
+      Próximo mediodía en...
+    </h1>
+
+    <div class="timezone" id="timezone">
+      Calculando líneas temporales...
+    </div>
+
+    <div class="countdown" id="countdown">
+      00:00:00
+    </div>
+
+    <div class="now" id="currentTime"></div>
+
+    <div class="quote">
+      “En algún lugar del mundo, alguien ya está instalockeando Yasuo.”
+    </div>
+
+  </div>
+
+  <script>
+
+    const allTimezones = Intl.supportedValuesOf("timeZone");
+
+    const timezoneCountryMap = {
+
+      "Argentina": "AR",
+      "Tokyo": "JP",
+      "Seoul": "KR",
+      "Shanghai": "CN",
+      "Hong_Kong": "HK",
+      "Taipei": "TW",
+      "Bangkok": "TH",
+      "Singapore": "SG",
+      "Dubai": "AE",
+      "Jerusalem": "IL",
+      "Moscow": "RU",
+      "London": "GB",
+      "Madrid": "ES",
+      "Paris": "FR",
+      "Rome": "IT",
+      "Berlin": "DE",
+      "Lisbon": "PT",
+      "Dublin": "IE",
+
+      "New_York": "US",
+      "Chicago": "US",
+      "Denver": "US",
+      "Los_Angeles": "US",
+
+      "Toronto": "CA",
+      "Vancouver": "CA",
+
+      "Mexico_City": "MX",
+
+      "Sao_Paulo": "BR",
+      "Santiago": "CL",
+      "Lima": "PE",
+      "Bogota": "CO",
+
+      "Sydney": "AU",
+      "Melbourne": "AU",
+      "Perth": "AU",
+
+      "Auckland": "NZ"
+    };
+
+    const countryNames = {
+
+      AR: "Argentina",
+      JP: "Japón",
+      KR: "Corea del Sur",
+      CN: "China",
+      HK: "Hong Kong",
+      TW: "Taiwán",
+      TH: "Tailandia",
+      SG: "Singapur",
+      AE: "Emiratos Árabes",
+      IL: "Israel",
+      RU: "Rusia",
+      GB: "Reino Unido",
+      ES: "España",
+      FR: "Francia",
+      IT: "Italia",
+      DE: "Alemania",
+      PT: "Portugal",
+      IE: "Irlanda",
+
+      US: "Estados Unidos",
+      CA: "Canadá",
+      MX: "México",
+
+      BR: "Brasil",
+      CL: "Chile",
+      PE: "Perú",
+      CO: "Colombia",
+
+      AU: "Australia",
+      NZ: "Nueva Zelanda"
+    };
+
+    function countryCodeToFlag(code) {
+
+      return [...code.toUpperCase()]
+        .map(char =>
+          String.fromCodePoint(
+            127397 + char.charCodeAt()
+          )
+        )
+        .join("");
+    }
+
+    function tryGetCountry(zone) {
+
+      const parts = zone.split("/");
+
+      for (const part of parts) {
+
+        if (timezoneCountryMap[part]) {
+
+          const code = timezoneCountryMap[part];
+
+          return {
+            flag: countryCodeToFlag(code),
+            country: countryNames[code]
+          };
+        }
+      }
+
+      return {
+        flag: "🌎",
+        country: null
+      };
+    }
+
+    function getTimeParts(zone) {
+
+      const formatter =
+        new Intl.DateTimeFormat("es-AR", {
+
+          timeZone: zone,
+
+          hour12: false,
+
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit"
+        });
+
+      const parts =
+        formatter.formatToParts(new Date());
+
+      return {
+
+        hour: Number(
+          parts.find(p => p.type === "hour").value
+        ),
+
+        minute: Number(
+          parts.find(p => p.type === "minute").value
+        ),
+
+        second: Number(
+          parts.find(p => p.type === "second").value
+        )
+      };
+    }
+
+    function secondsUntilNoon(zone) {
+
+      const t = getTimeParts(zone);
+
+      const currentSeconds =
+
+        (t.hour * 3600) +
+        (t.minute * 60) +
+        t.second;
+
+      const noonSeconds = 12 * 3600;
+
+      if (currentSeconds <= noonSeconds) {
+
+        return noonSeconds - currentSeconds;
+      }
+
+      return (
+
+        (24 * 3600 - currentSeconds)
+        + noonSeconds
+      );
+    }
+
+    function formatCountdown(totalSeconds) {
+
+      const hours = Math.floor(
+        totalSeconds / 3600
+      )
+        .toString()
+        .padStart(2, "0");
+
+      const minutes = Math.floor(
+        (totalSeconds % 3600) / 60
+      )
+        .toString()
+        .padStart(2, "0");
+
+      const seconds = Math.floor(
+        totalSeconds % 60
+      )
+        .toString()
+        .padStart(2, "0");
+
+      return `${hours}:${minutes}:${seconds}`;
+    }
+
+    function formatCurrentTime(zone) {
+
+      return new Intl.DateTimeFormat("es-AR", {
+
+        timeZone: zone,
+
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+
+        hour12: false
+
+      }).format(new Date());
+    }
+
+    function update() {
+
+      let closestZone = null;
+      let smallestSeconds = Infinity;
+
+      for (const zone of allTimezones) {
+
+        const seconds =
+          secondsUntilNoon(zone);
+
+        if (seconds < smallestSeconds) {
+
+          smallestSeconds = seconds;
+          closestZone = zone;
+        }
+      }
+
+      const countryData =
+        tryGetCountry(closestZone);
+
+      const cleanZone =
+        closestZone.replaceAll("_", " ");
+
+      if (countryData.country) {
+
+        document.getElementById(
+          "countryContainer"
+        ).innerHTML = `
+
+          <div class="country">
+
+            <div class="country-flag">
+              ${countryData.flag}
+            </div>
+
+            <div class="country-name">
+              ${countryData.country}
+            </div>
+
+          </div>
+        `;
+
+      } else {
+
+        document.getElementById(
+          "countryContainer"
+        ).innerHTML = "";
+      }
+
+      document.getElementById(
+        "timezone"
+      ).textContent = cleanZone;
+
+      document.getElementById(
+        "countdown"
+      ).textContent =
+        formatCountdown(smallestSeconds);
+
+      document.getElementById(
+        "currentTime"
+      ).textContent =
+        `Hora actual ahí: ${formatCurrentTime(closestZone)}`;
+
+      if (smallestSeconds === 0) {
+
+        document.getElementById(
+          "title"
+        ).textContent =
+          "ES HORA DE JUGAR LOL";
+
+      } else {
+
+        document.getElementById(
+          "title"
+        ).textContent =
+          "Próximo mediodía en...";
+      }
+    }
+
+    update();
+
+    setInterval(update, 1000);
+
+  </script>
+
+</body>
+</html>
